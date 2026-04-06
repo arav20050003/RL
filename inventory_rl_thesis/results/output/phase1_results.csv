@@ -1,5 +1,5 @@
 Policy,Paper_Mean,Paper_Std,Our_Mean,Our_Std,Delta_Pct,Within_Range
 "(s,Q)",1226.0,71.0,1337.4,48.7,9.1,True
 PPO (SB3),1213.0,68.0,1602.4,51.1,32.1,False
-A2C (≈A3C),870.0,67.0,-3183.7,28.6,465.9,False
-Oracle,1474.0,45.0,-2086.0,52.2,241.5,False
+A2C (≈A3C),870.0,67.0,184.8,47.8,78.8,False
+Oracle,1474.0,45.0,1454.7,42.4,1.3,True

@@ -141,57 +141,27 @@ class OraclePolicy:
         """
         if env is not None and hasattr(env, "get_raw_state"):
             raw = env.get_raw_state()
-            warehouse_inv = raw["warehouse_inv"]
-            producer_inv = raw["producer_inv"]
-            in_transit = raw["in_transit"]
             t = int(raw["t"])
             max_production = env.max_production
-            cap_warehouse = env.cap_warehouse
         else:
-            warehouse_inv = float(obs[1]) * 10
-            producer_inv = float(obs[0]) * 5
-            in_transit = float(obs[2]) * 20
             t = int(float(obs[4]) * 25)
             max_production = 20
-            cap_warehouse = 10
 
-        # Current demand
-        if self._demand_sequence is not None and t < len(self._demand_sequence):
-            current_demand = self._demand_sequence[t]
-        else:
-            current_demand = float(obs[3]) * 20
-
-        # Look-ahead: next period demand
+        # Look up future demand
         if self._demand_sequence is not None and t + 1 < len(self._demand_sequence):
             next_demand = self._demand_sequence[t + 1]
         else:
-            next_demand = current_demand
+            next_demand = 10.0  # fallback to d_max
 
-        # ── Oracle strategy ────────────────────────────────────────────
-        # After current demand is served from warehouse, warehouse will have:
-        #   warehouse_after = max(0, warehouse_inv - current_demand)
-        # Plus in_transit arriving next step.
-        # We need to ship enough so next step warehouse can meet next_demand.
-        warehouse_after_demand = max(0.0, warehouse_inv - current_demand)
-        # Next step warehouse = warehouse_after_demand + in_transit + new_shipment
-        # We want: warehouse_after_demand + in_transit + ship >= next_demand
-        # But cap at warehouse capacity
-        target_warehouse = min(next_demand * 1.1, cap_warehouse)  # slight buffer
-        needed_shipment = max(
-            0.0,
-            target_warehouse - warehouse_after_demand - in_transit
-        )
-        ship_qty = min(needed_shipment, producer_inv, max_production)
-
-        # Production: replenish what we ship + build buffer
-        target_production = ship_qty + max(0.0, next_demand - producer_inv + ship_qty)
-        produce_qty = min(target_production, max_production)
-
-        # Convert to fractions
-        produce_frac = float(np.clip(produce_qty / max(max_production, 1), 0.0, 1.0))
-        ship_frac = float(np.clip(ship_qty / max(max_production, 1), 0.0, 1.0))
-
-        self._current_step = t + 1
+        # Oracle strategy:
+        # - SHIP: always request full pipeline amount (0.5 frac = 10 units)
+        #   env.step() will produce first then ship from the combined pool
+        #   so ship_frac=0.5 reliably ships 10 units regardless of current p_inv
+        # - PRODUCE: use demand foresight to produce exactly what next step needs
+        #   slightly over-produce to buffer minor demand spikes
+        produce_target = float(np.clip(next_demand + 1.0, 0.0, max_production))
+        produce_frac = float(np.clip(produce_target / max(max_production, 1), 0.0, 1.0))
+        ship_frac = 0.5  # reliably ships 10 units via the combined pool
 
         action = np.array([produce_frac, ship_frac], dtype=np.float32)
         return action, None

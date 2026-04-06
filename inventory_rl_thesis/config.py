@@ -59,11 +59,11 @@ PPO_CONFIG: dict = {
 # in single-environment settings per Mnih et al. 2016.
 A2C_CONFIG: dict = {
     "policy": "MlpPolicy",
-    "learning_rate": 7e-4,
-    "n_steps": 5,
+    "learning_rate": 3e-4,
+    "n_steps": 128,        # was 5 — need to see full episode dynamics
     "gamma": 0.99,
-    "gae_lambda": 1.0,
-    "ent_coef": 0.0,
+    "gae_lambda": 0.95,    # was 1.0 — add proper advantage estimation
+    "ent_coef": 0.01,      # was 0.0 — add exploration to escape stockout trap
     "policy_kwargs": {"net_arch": [64, 64]},
     "verbose": 0,
     "seed": SEED,
