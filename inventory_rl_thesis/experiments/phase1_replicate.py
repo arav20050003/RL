@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from stable_baselines3.common.monitor import Monitor
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -112,12 +113,13 @@ def run_phase1(
 
     # ── 3. Train + Evaluate PPO ──────────────────────────────────────────
     print(f"\n▸ {'Loading' if eval_only else 'Training'} PPO agent...")
-    env_ppo = ScimaiEnv()
+    env_ppo = Monitor(ScimaiEnv())
     ppo_model_path = MODELS_DIR / "phase1_ppo_final"
 
     if eval_only and ppo_model_path.with_suffix(".zip").exists():
         ppo_agent = load_agent(ppo_model_path, env_ppo, agent_type="ppo")
         print(f"  Loaded from {ppo_model_path}")
+        results["ppo_training_rewards"] = []
     else:
         ppo_agent = create_ppo_agent(env_ppo)
         eval_env_ppo = ScimaiEnv()
@@ -128,6 +130,9 @@ def run_phase1(
             eval_env=eval_env_ppo,
             name="phase1_ppo",
         )
+        results["ppo_training_rewards"] = [
+            ep_info["r"] for ep_info in ppo_agent.ep_info_buffer
+        ]
 
     results["ppo"] = evaluate_agent(ppo_agent, env_ppo, n_episodes=n_eval)
     print(
@@ -137,12 +142,13 @@ def run_phase1(
 
     # ── 4. Train + Evaluate A2C (substitute for A3C) ─────────────────────
     print(f"\n▸ {'Loading' if eval_only else 'Training'} A2C agent (≈A3C)...")
-    env_a2c = ScimaiEnv()
+    env_a2c = Monitor(ScimaiEnv())
     a2c_model_path = MODELS_DIR / "phase1_a2c_final"
 
     if eval_only and a2c_model_path.with_suffix(".zip").exists():
         a2c_agent = load_agent(a2c_model_path, env_a2c, agent_type="a2c")
         print(f"  Loaded from {a2c_model_path}")
+        results["a2c_training_rewards"] = []
     else:
         a2c_agent = create_a2c_agent(env_a2c)
         eval_env_a2c = ScimaiEnv()
@@ -153,6 +159,9 @@ def run_phase1(
             eval_env=eval_env_a2c,
             name="phase1_a2c",
         )
+        results["a2c_training_rewards"] = [
+            ep_info["r"] for ep_info in a2c_agent.ep_info_buffer
+        ]
 
     results["a2c"] = evaluate_agent(a2c_agent, env_a2c, n_episodes=n_eval)
     print(

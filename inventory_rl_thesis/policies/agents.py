@@ -56,7 +56,8 @@ def create_ppo_agent(
     Returns:
         Configured SB3 PPO agent (untrained).
     """
-    cfg = config or PPO_CONFIG.copy()
+    import copy
+    cfg = copy.deepcopy(config or PPO_CONFIG)
     policy = cfg.pop("policy", "MlpPolicy")
 
     return PPO(
@@ -86,7 +87,8 @@ def create_a2c_agent(
     Returns:
         Configured SB3 A2C agent (untrained).
     """
-    cfg = config or A2C_CONFIG.copy()
+    import copy
+    cfg = copy.deepcopy(config or A2C_CONFIG)
     policy = cfg.pop("policy", "MlpPolicy")
 
     return A2C(
@@ -230,6 +232,7 @@ def evaluate_agent(
     episode_stockout_rates: list[float] = []
     episode_details: list[dict] = []
     all_inventories: list[list[float]] = []
+    all_actions: list[np.ndarray] = []
 
     for ep in range(n_ep):
         obs, info = env.reset(seed=SEED + ep)
@@ -250,6 +253,8 @@ def evaluate_agent(
                 action, _ = agent.predict(obs, env=env, deterministic=det)
             else:
                 action, _ = agent.predict(obs, deterministic=det)
+
+            all_actions.append(action)
 
             obs, reward, terminated, truncated, info = env.step(action)
             done = terminated or truncated
@@ -288,6 +293,7 @@ def evaluate_agent(
     profits_arr = np.array(episode_profits)
     service_arr = np.array(episode_service_levels)
     stockout_arr = np.array(episode_stockout_rates)
+    actions_arr = np.array(all_actions) if all_actions else np.zeros((1, 2))
 
     return {
         "mean_profit": float(np.mean(profits_arr)),
@@ -301,4 +307,6 @@ def evaluate_agent(
         "episode_stockout_rates": episode_stockout_rates,
         "episode_details": episode_details,
         "inventory_trajectories": all_inventories,
+        "mean_action": np.mean(actions_arr, axis=0),
+        "std_action": np.std(actions_arr, axis=0),
     }

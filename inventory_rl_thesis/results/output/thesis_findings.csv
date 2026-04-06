@@ -1,0 +1,13 @@
+Regime,Policy,Mean_Profit,Vs_Blind_Pct,Vs_SQ_Pct,Collapse_Detected,Over_Hedging_Detected
+frequent_short,"(s,Q)",758.4,-26.5,,False,False
+frequent_short,PPO Blind,1031.6,,36.0,False,False
+frequent_short,PPO Disrupt-Aware,398.4,-61.4,-47.5,False,True
+frequent_short,PPO LLM-Augmented,984.0,-4.6,29.8,False,False
+infrequent_long,"(s,Q)",460.8,-36.6,,False,False
+infrequent_long,PPO Blind,726.3,,57.6,False,False
+infrequent_long,PPO Disrupt-Aware,689.2,-5.1,49.6,False,False
+infrequent_long,PPO LLM-Augmented,691.7,-4.8,50.1,False,False
+stress_test,"(s,Q)",-2805.4,17.1,,False,False
+stress_test,PPO Blind,-3385.6,,-20.7,True,False
+stress_test,PPO Disrupt-Aware,-3385.6,0.0,-20.7,True,False
+stress_test,PPO LLM-Augmented,-3384.5,0.0,-20.6,True,False

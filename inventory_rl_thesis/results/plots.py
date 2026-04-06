@@ -75,7 +75,7 @@ def plot_phase1_learning_curve(
     """
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    if ppo_rewards:
+    if ppo_rewards and len(ppo_rewards) > 10:
         window = max(len(ppo_rewards) // 50, 1)
         smoothed = np.convolve(ppo_rewards, np.ones(window) / window, mode="valid")
         ax.plot(smoothed, color=POLICY_COLORS["PPO"], alpha=0.9, label="PPO (SB3)", linewidth=2)
@@ -86,7 +86,7 @@ def plot_phase1_learning_curve(
             alpha=0.15, color=POLICY_COLORS["PPO"],
         )
 
-    if a2c_rewards:
+    if a2c_rewards and len(a2c_rewards) > 10:
         window = max(len(a2c_rewards) // 50, 1)
         smoothed = np.convolve(a2c_rewards, np.ones(window) / window, mode="valid")
         ax.plot(smoothed, color=POLICY_COLORS["A2C"], alpha=0.9, label="A2C (≈A3C)", linewidth=2)
@@ -106,7 +106,7 @@ def plot_phase1_learning_curve(
         linestyle="--", alpha=0.5, label=f"Paper A3C: {PAPER_RESULTS['a3c_mean']:.0f}",
     )
 
-    ax.set_xlabel("Training Episode")
+    ax.set_xlabel("Training Timestep")
     ax.set_ylabel("Episode Reward (Cumulative Profit)")
     ax.set_title("Phase 1: Training Learning Curves — PPO vs A2C")
     ax.legend(loc="lower right")
@@ -370,8 +370,8 @@ def generate_all_plots(
     if phase1_results:
         # Plot 1: Learning curves (requires training history — use episode profits as proxy)
         plot_phase1_learning_curve(
-            ppo_rewards=phase1_results.get("ppo", {}).get("episode_profits"),
-            a2c_rewards=phase1_results.get("a2c", {}).get("episode_profits"),
+            ppo_rewards=phase1_results.get("ppo_training_rewards"),
+            a2c_rewards=phase1_results.get("a2c_training_rewards"),
         )
         # Plot 2: Profit comparison
         plot_phase1_profit_comparison(phase1_results)

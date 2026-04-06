@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from stable_baselines3.common.monitor import Monitor
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -121,15 +122,16 @@ def _run_regime(
 
     # ── 2. PPO Blind (base state only) ───────────────────────────────────
     print("\n  ▸ PPO Blind (no disruption info)...")
-    env_blind = DisruptionEnv(
+    env_blind = Monitor(DisruptionEnv(
         disruption_regime=regime,
         include_true_flag=False,
         include_risk_score=False,
-    )
+    ))
     model_path = MODELS_DIR / f"phase2_{regime}_ppo_blind_final"
 
     if eval_only and model_path.with_suffix(".zip").exists():
         ppo_blind = load_agent(model_path, env_blind, agent_type="ppo")
+        results["ppo_blind_training_rewards"] = []
     else:
         ppo_blind = create_ppo_agent(env_blind)
         eval_env = DisruptionEnv(
@@ -144,6 +146,9 @@ def _run_regime(
             eval_env=eval_env,
             name=f"phase2_{regime}_ppo_blind",
         )
+        results["ppo_blind_training_rewards"] = [
+            ep_info["r"] for ep_info in ppo_blind.ep_info_buffer
+        ]
 
     results["ppo_blind"] = _evaluate_with_disruption_metrics(
         ppo_blind, env_blind, n_eval
@@ -152,15 +157,16 @@ def _run_regime(
 
     # ── 3. PPO Disruption-Aware (true flag in state) ─────────────────────
     print("\n  ▸ PPO Disruption-Aware (true flag)...")
-    env_aware = DisruptionEnv(
+    env_aware = Monitor(DisruptionEnv(
         disruption_regime=regime,
         include_true_flag=True,
         include_risk_score=False,
-    )
+    ))
     model_path = MODELS_DIR / f"phase2_{regime}_ppo_aware_final"
 
     if eval_only and model_path.with_suffix(".zip").exists():
         ppo_aware = load_agent(model_path, env_aware, agent_type="ppo")
+        results["ppo_aware_training_rewards"] = []
     else:
         ppo_aware = create_ppo_agent(env_aware)
         eval_env = DisruptionEnv(
@@ -175,6 +181,9 @@ def _run_regime(
             eval_env=eval_env,
             name=f"phase2_{regime}_ppo_aware",
         )
+        results["ppo_aware_training_rewards"] = [
+            ep_info["r"] for ep_info in ppo_aware.ep_info_buffer
+        ]
 
     results["ppo_aware"] = _evaluate_with_disruption_metrics(
         ppo_aware, env_aware, n_eval
@@ -183,15 +192,16 @@ def _run_regime(
 
     # ── 4. PPO LLM-Augmented (noisy risk score in state) ─────────────────
     print("\n  ▸ PPO LLM-Augmented (noisy risk score)...")
-    env_llm = DisruptionEnv(
+    env_llm = Monitor(DisruptionEnv(
         disruption_regime=regime,
         include_true_flag=False,
         include_risk_score=True,
-    )
+    ))
     model_path = MODELS_DIR / f"phase2_{regime}_ppo_llm_final"
 
     if eval_only and model_path.with_suffix(".zip").exists():
         ppo_llm = load_agent(model_path, env_llm, agent_type="ppo")
+        results["ppo_llm_training_rewards"] = []
     else:
         ppo_llm = create_ppo_agent(env_llm)
         eval_env = DisruptionEnv(
@@ -206,6 +216,9 @@ def _run_regime(
             eval_env=eval_env,
             name=f"phase2_{regime}_ppo_llm",
         )
+        results["ppo_llm_training_rewards"] = [
+            ep_info["r"] for ep_info in ppo_llm.ep_info_buffer
+        ]
 
     results["ppo_llm"] = _evaluate_with_disruption_metrics(
         ppo_llm, env_llm, n_eval
@@ -261,9 +274,6 @@ def _evaluate_with_disruption_metrics(
 
             if info.get("disruption_active", False):
                 ep_disruption_periods += 1
-            ep_disruption_cost += info.get("disruption_cost", 0.0) - (
-                disruption_costs[-1] if disruption_costs else 0.0
-            )
             ep_logistics_loss += info.get("logistics_loss", 0.0)
 
         disruption_costs.append(info.get("disruption_cost", 0.0))

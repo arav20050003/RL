@@ -1,0 +1,13 @@
+Regime,Policy,Mean_Profit,Std_Profit,Service_Level,Stockout_Rate,Disruption_Cost
+frequent_short,"(s,Q)",758.4,575.2,0.8329,0.1671,149.6
+frequent_short,PPO Blind,1031.6,559.3,0.8534,0.1466,155.2
+frequent_short,PPO Disrupt-Aware,398.4,1016.7,0.7755,0.2245,96.3
+frequent_short,PPO LLM-Augmented,984.0,533.4,0.8570,0.1430,164.8
+infrequent_long,"(s,Q)",460.8,1618.0,0.8009,0.1991,202.1
+infrequent_long,PPO Blind,726.3,1620.2,0.8193,0.1807,199.5
+infrequent_long,PPO Disrupt-Aware,689.2,1603.3,0.8206,0.1794,203.4
+infrequent_long,PPO LLM-Augmented,691.7,1601.0,0.8212,0.1788,207.8
+stress_test,"(s,Q)",-2805.4,1818.1,0.4521,0.5479,866.5
+stress_test,PPO Blind,-3385.6,1578.0,0.5330,0.4670,1737.0
+stress_test,PPO Disrupt-Aware,-3385.6,1578.0,0.5330,0.4670,1737.0
+stress_test,PPO LLM-Augmented,-3384.5,1577.2,0.5330,0.4670,1737.0

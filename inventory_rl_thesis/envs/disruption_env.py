@@ -140,6 +140,7 @@ class DisruptionEnv(ScimaiEnv):
         self.total_logistics_loss = 0.0
         self.disruption_cost = 0.0
         self.disruption_history = [False]
+        self._step_logistics_loss = 0.0
 
         # Return extended observation
         obs = self._get_obs()
