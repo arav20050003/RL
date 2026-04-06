@@ -117,7 +117,7 @@ def print_stress_table(stress_results: dict[str, Any]) -> None:
     if "stress_test" in stress_results:
         print_phase2_table(stress_results["stress_test"], "stress_test")
         print("  CAVEAT: Identical PPO results under stress regime reflect")
-        print("  policy collapse to [1.0, 1.0] saturation, not a code error.")
+        print("  saturation to maximum-throughput policy, not a code error.")
         print("  300k timesteps may be insufficient to escape this local")
         print("  optimum. Acknowledged as scope limitation in thesis.")
         print()
@@ -231,3 +231,36 @@ def save_results_csv(
                         vs_blind_pct, vs_sq_pct, collapse_detected, over_hedging
                     ])
         print(f"  Thesis findings saved to {csv_path_3}")
+
+        if "frequent_short" in phase2_results:
+            fs = phase2_results["frequent_short"]
+            if "ppo_blind" in fs and "ppo_llm" in fs and "ppo_aware" in fs:
+                from scipy import stats
+                blind_profits = fs["ppo_blind"]["episode_profits"]
+                aware_profits = fs["ppo_aware"]["episode_profits"]
+                llm_profits = fs["ppo_llm"]["episode_profits"]
+                
+                print("\n  Significance Test (Frequent-Short):")
+                t_stat, p_val = stats.ttest_ind(blind_profits, llm_profits)
+                print(f"    Blind vs LLM-Aug: t={t_stat:.2f}, p={p_val:.4f}")
+                
+                t_stat, p_val = stats.ttest_ind(blind_profits, aware_profits)
+                print(f"    Blind vs Disrupt-Aware: t={t_stat:.2f}, p={p_val:.4f}")
+
+        if "infrequent_long" in phase2_results:
+            il = phase2_results["infrequent_long"]
+            if "ppo_blind" in il and "ppo_aware" in il and "ppo_llm" in il and "sq" in il:
+                from scipy import stats
+                blind_profits = il["ppo_blind"]["episode_profits"]
+                aware_profits = il["ppo_aware"]["episode_profits"]
+                llm_profits   = il["ppo_llm"]["episode_profits"]
+                sq_profits    = il["sq"]["episode_profits"]
+
+                print("\n  Significance Test (Infrequent-Long):")
+                t, p = stats.ttest_ind(blind_profits, llm_profits)
+                print(f"    Blind vs LLM-Aug: t={t:.2f}, p={p:.4f}")
+                t, p = stats.ttest_ind(blind_profits, aware_profits)
+                print(f"    Blind vs Disrupt-Aware: t={t:.2f}, p={p:.4f}")
+                t, p = stats.ttest_ind(blind_profits, sq_profits)
+                print(f"    Blind vs (s,Q): t={t:.2f}, p={p:.4f}")
+

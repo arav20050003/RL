@@ -82,7 +82,7 @@ def check_policy_collapse(results: dict[str, Any]) -> None:
         mean_act = np.mean(all_actions, axis=0)
         if np.all(mean_act > 0.95):
             print(f"    NOTE: {name} converged to [1.0, 1.0] saturation")
-            print("     policy — consistent with policy collapse under extreme")
+            print("     policy — consistent with saturation to max-throughput under extreme")
             print("     distributional shift (see thesis Section X.X)")
             results["stress_test"][key]["collapse_detected"] = True
         else:

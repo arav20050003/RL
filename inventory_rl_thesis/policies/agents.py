@@ -233,6 +233,9 @@ def evaluate_agent(
     episode_details: list[dict] = []
     all_inventories: list[list[float]] = []
     all_actions: list[np.ndarray] = []
+    episode_disruption_costs: list[float] = []
+    episode_logistics_losses: list[float] = []
+    episode_disruption_periods: list[int] = []
 
     for ep in range(n_ep):
         obs, info = env.reset(seed=SEED + ep)
@@ -266,6 +269,9 @@ def evaluate_agent(
             inventory_trajectory.append(info.get("warehouse_inv", 0.0))
 
         episode_profits.append(ep_profit)
+        episode_disruption_costs.append(info.get("disruption_cost", 0.0))
+        episode_logistics_losses.append(info.get("total_logistics_loss", 0.0))
+        episode_disruption_periods.append(info.get("total_disruption_periods", 0))
 
         # Service level = fulfilled / demand
         service_level = (
@@ -309,4 +315,9 @@ def evaluate_agent(
         "inventory_trajectories": all_inventories,
         "mean_action": np.mean(actions_arr, axis=0),
         "std_action": np.std(actions_arr, axis=0),
+        "mean_disruption_cost": float(np.mean(episode_disruption_costs)) if episode_disruption_costs else 0.0,
+        "std_disruption_cost": float(np.std(episode_disruption_costs)) if episode_disruption_costs else 0.0,
+        "mean_logistics_loss": float(np.mean(episode_logistics_losses)) if episode_logistics_losses else 0.0,
+        "std_logistics_loss": float(np.std(episode_logistics_losses)) if episode_logistics_losses else 0.0,
+        "mean_disruption_periods": float(np.mean(episode_disruption_periods)) if episode_disruption_periods else 0.0,
     }

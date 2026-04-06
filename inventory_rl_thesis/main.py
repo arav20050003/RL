@@ -120,8 +120,8 @@ def main() -> None:
         print("          Aware collapses −61% — over-hedging on boolean flag.")
         print("Phase 2 Infrequent-Long: LLM-Aug +50% vs (s,Q), −5% vs Blind.")
         print("          No over-hedging detected.")
-        print("Stress Test: All PPO variants collapse to [1.0,1.0].")
-        print("          (s,Q) most robust. Policy collapse under extreme regime.\n")
+        print("Stress Test: All PPO variants saturate to [1.0,1.0].")
+        print("          (s,Q) most robust. Saturation to max-throughput under extreme regime.\n")
         return
 
     # ── Setup ──────────────────────────────────────────────────────────────

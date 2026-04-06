@@ -88,7 +88,8 @@ def run_phase1(
     results: dict[str, Any] = {}
 
     # ── 1. Evaluate (s,Q) Heuristic ──────────────────────────────────────
-    print("\n▸ Evaluating (s,Q) heuristic (s=3, Q=8)...")
+    from config import SQ_CONFIG
+    print(f"\n▸ Evaluating (s,Q) heuristic (s={SQ_CONFIG['s']}, Q={SQ_CONFIG['Q']})...")
     env_sq = ScimaiEnv()
     sq_policy = SQPolicy()
     results["sq"] = evaluate_agent(
@@ -148,6 +149,8 @@ def run_phase1(
     if eval_only and a2c_model_path.with_suffix(".zip").exists():
         a2c_agent = load_agent(a2c_model_path, env_a2c, agent_type="a2c")
         print(f"  Loaded from {a2c_model_path}")
+        print("  NOTE: If A2C results look wrong, delete saved model and retrain.")
+        print("  A2C config was updated (n_steps=128, gae=0.95, ent=0.01).")
         results["a2c_training_rewards"] = []
     else:
         a2c_agent = create_a2c_agent(env_a2c)

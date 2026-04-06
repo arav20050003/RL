@@ -115,8 +115,8 @@ def _run_regime(
         include_risk_score=False,
     )
     sq_policy = SQPolicy()
-    results["sq"] = _evaluate_with_disruption_metrics(
-        sq_policy, env_sq, n_eval, is_heuristic=True
+    results["sq"] = evaluate_agent(
+        sq_policy, env_sq, n_episodes=n_eval, is_heuristic=True
     )
     _print_policy_result("(s,Q)", results["sq"])
 
@@ -129,7 +129,13 @@ def _run_regime(
     ))
     model_path = MODELS_DIR / f"phase2_{regime}_ppo_blind_final"
 
-    if eval_only and model_path.with_suffix(".zip").exists():
+    if eval_only and not model_path.with_suffix(".zip").exists():
+        print(f"  WARNING: No saved model at {model_path}. Training instead.")
+        eval_only_this = False
+    else:
+        eval_only_this = eval_only
+
+    if eval_only_this and model_path.with_suffix(".zip").exists():
         ppo_blind = load_agent(model_path, env_blind, agent_type="ppo")
         results["ppo_blind_training_rewards"] = []
     else:
@@ -150,8 +156,8 @@ def _run_regime(
             ep_info["r"] for ep_info in ppo_blind.ep_info_buffer
         ]
 
-    results["ppo_blind"] = _evaluate_with_disruption_metrics(
-        ppo_blind, env_blind, n_eval
+    results["ppo_blind"] = evaluate_agent(
+        ppo_blind, env_blind, n_episodes=n_eval
     )
     _print_policy_result("PPO Blind", results["ppo_blind"])
 
@@ -164,7 +170,13 @@ def _run_regime(
     ))
     model_path = MODELS_DIR / f"phase2_{regime}_ppo_aware_final"
 
-    if eval_only and model_path.with_suffix(".zip").exists():
+    if eval_only and not model_path.with_suffix(".zip").exists():
+        print(f"  WARNING: No saved model at {model_path}. Training instead.")
+        eval_only_this = False
+    else:
+        eval_only_this = eval_only
+
+    if eval_only_this and model_path.with_suffix(".zip").exists():
         ppo_aware = load_agent(model_path, env_aware, agent_type="ppo")
         results["ppo_aware_training_rewards"] = []
     else:
@@ -185,8 +197,8 @@ def _run_regime(
             ep_info["r"] for ep_info in ppo_aware.ep_info_buffer
         ]
 
-    results["ppo_aware"] = _evaluate_with_disruption_metrics(
-        ppo_aware, env_aware, n_eval
+    results["ppo_aware"] = evaluate_agent(
+        ppo_aware, env_aware, n_episodes=n_eval
     )
     _print_policy_result("PPO Disrupt-Aware", results["ppo_aware"])
 
@@ -199,7 +211,13 @@ def _run_regime(
     ))
     model_path = MODELS_DIR / f"phase2_{regime}_ppo_llm_final"
 
-    if eval_only and model_path.with_suffix(".zip").exists():
+    if eval_only and not model_path.with_suffix(".zip").exists():
+        print(f"  WARNING: No saved model at {model_path}. Training instead.")
+        eval_only_this = False
+    else:
+        eval_only_this = eval_only
+
+    if eval_only_this and model_path.with_suffix(".zip").exists():
         ppo_llm = load_agent(model_path, env_llm, agent_type="ppo")
         results["ppo_llm_training_rewards"] = []
     else:
@@ -220,75 +238,13 @@ def _run_regime(
             ep_info["r"] for ep_info in ppo_llm.ep_info_buffer
         ]
 
-    results["ppo_llm"] = _evaluate_with_disruption_metrics(
-        ppo_llm, env_llm, n_eval
+    results["ppo_llm"] = evaluate_agent(
+        ppo_llm, env_llm, n_episodes=n_eval
     )
     _print_policy_result("PPO LLM-Augmented", results["ppo_llm"])
 
     return results
 
-
-def _evaluate_with_disruption_metrics(
-    agent: Any,
-    env: DisruptionEnv,
-    n_episodes: int,
-    is_heuristic: bool = False,
-) -> dict[str, Any]:
-    """
-    Evaluate agent and collect disruption-specific metrics.
-
-    Returns standard metrics plus:
-      - mean_disruption_cost, std_disruption_cost
-      - mean_logistics_loss, std_logistics_loss
-      - mean_disruption_periods
-    """
-    base_results = evaluate_agent(
-        agent, env, n_episodes=n_episodes, is_heuristic=is_heuristic
-    )
-
-    # Collect disruption-specific metrics per episode
-    disruption_costs: list[float] = []
-    logistics_losses: list[float] = []
-    disruption_periods: list[int] = []
-
-    for ep in range(n_episodes):
-        obs, info = env.reset(seed=SEED + ep)
-        done = False
-        ep_disruption_cost = 0.0
-        ep_logistics_loss = 0.0
-        ep_disruption_periods = 0
-
-        # Reset oracle demand if needed
-        if hasattr(agent, "set_demand_sequence") and hasattr(env, "generate_demand_sequence"):
-            demands = env.generate_demand_sequence(seed=SEED + ep)
-            agent.set_demand_sequence(demands)
-
-        while not done:
-            if is_heuristic:
-                action, _ = agent.predict(obs, env=env)
-            else:
-                action, _ = agent.predict(obs, deterministic=True)
-
-            obs, reward, terminated, truncated, info = env.step(action)
-            done = terminated or truncated
-
-            if info.get("disruption_active", False):
-                ep_disruption_periods += 1
-            ep_logistics_loss += info.get("logistics_loss", 0.0)
-
-        disruption_costs.append(info.get("disruption_cost", 0.0))
-        logistics_losses.append(info.get("total_logistics_loss", 0.0))
-        disruption_periods.append(info.get("total_disruption_periods", 0))
-
-    base_results.update({
-        "mean_disruption_cost": float(np.mean(disruption_costs)),
-        "std_disruption_cost": float(np.std(disruption_costs)),
-        "mean_logistics_loss": float(np.mean(logistics_losses)),
-        "std_logistics_loss": float(np.std(logistics_losses)),
-        "mean_disruption_periods": float(np.mean(disruption_periods)),
-    })
-
-    return base_results
 
 
 def _print_policy_result(name: str, metrics: dict[str, Any]) -> None:
