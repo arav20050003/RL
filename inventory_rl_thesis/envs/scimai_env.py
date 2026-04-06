@@ -176,25 +176,26 @@ class ScimaiEnv(gym.Env):
         # ── Step 3: Fulfill demand from warehouse ──────────────────────────
         fulfilled, stockout_qty = self._fulfill_demand(demand)
 
-        # ── Step 4: Production ─────────────────────────────────────────────
-        # Produce units (fraction of max_production). These are added to
-        # the available pool at the producer.
-        produce_qty = produce_frac * self.max_production
+        # ── Step 4: Production ─────────────────────────────────────────────────
+        desired_produce = produce_frac * self.max_production
+        space_at_producer = self.cap_producer - self.producer_inv
+        desired_ship = ship_frac * self.max_production
+        # Only produce what can be stored OR immediately shipped
+        produce_qty = float(np.clip(
+            min(desired_produce, space_at_producer + desired_ship), 
+            0.0, self.max_production
+        ))
         available_at_producer = self.producer_inv + produce_qty
 
-        # ── Step 5: Shipping ───────────────────────────────────────────────
-        # Ship units from the available pool to warehouse (via transit).
-        desired_shipment = ship_frac * self.max_production
-        ship_qty = min(desired_shipment, available_at_producer)
-        available_at_producer -= ship_qty
-        self.in_transit = ship_qty  # arrives next step (lead_time=1)
-
-        # Remaining at producer is stored, capped at storage capacity
-        self.producer_inv = min(available_at_producer, self.cap_producer)
-        # Actual production cost: only for what's kept or shipped (not overflow)
-        actual_produce_used = ship_qty + min(available_at_producer, self.cap_producer) - self.producer_inv + ship_qty
-        # Simplify: charge for all production (agent should learn not to overproduce)
-        # This matches the paper's formulation
+        # ── Step 5: Shipping ───────────────────────────────────────────────────
+        ship_qty = float(np.clip(
+            min(desired_ship, available_at_producer), 
+            0.0, self.max_production
+        ))
+        self.producer_inv = float(np.clip(
+            available_at_producer - ship_qty, 0.0, self.cap_producer
+        ))
+        self.in_transit = ship_qty
 
         # ── Step 6: Cap inventories ────────────────────────────────────────
         self.producer_inv = max(self.producer_inv, 0.0)

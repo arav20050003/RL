@@ -34,8 +34,8 @@ SCIMAI_CONFIG: dict = {
 
 # ── (s,Q) Heuristic ───────────────────────────────────────────────────────────
 SQ_CONFIG: dict = {
-    "s": 3,  # reorder point
-    "Q": 8,  # order quantity
+    "s": 5,    # reorder when warehouse below half d_max
+    "Q": 10,   # order up to d_max units
 }
 
 # ── PPO Hyperparameters (SB3) ─────────────────────────────────────────────────
