@@ -1,0 +1,12 @@
+# requirements.txt
+# LLM-Augmented RL for Disruption-Resilient Inventory Control
+# Zero API dependencies — fully self-contained
+
+gymnasium>=0.29.0
+stable-baselines3>=2.3.0
+sb3-contrib>=2.3.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+pandas>=2.0.0
+scipy>=1.11.0
+tqdm>=4.65.0
