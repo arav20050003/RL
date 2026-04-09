@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .glow {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+  }
+}
+
+body {
+  background-color: #000;
+  margin: 0;
+  overflow-x: hidden;
+}
