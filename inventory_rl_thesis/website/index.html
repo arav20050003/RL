@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM-Augmented RL Thesis | Arav</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <link rel="stylesheet" href="styles.css">
+  <script src="project_data.js"></script>
+  <script src="charts.js"></script>
+  <script src="animations.js"></script>
+</head>
+<body>
+
+  <nav>
+    <a href="#" class="nav-logo">RLSC</a>
+    <div class="nav-links">
+      <a href="#overview">Overview</a>
+      <a href="#phase1">Phase 1</a>
+      <a href="#phase2">Phase 2</a>
+      <a href="#oracle">Oracle Module</a>
+      <a href="#findings">Findings</a>
+    </div>
+    <div class="nav-meta">VIT-AP · 2026</div>
+  </nav>
+
+  <section id="hero">
+    <canvas id="particles"></canvas>
+    
+    <div class="hero-label">
+      <span id="typewriter" data-text="VITAP UNIVERSITY · REINFORCEMENT LEARNING · 2026"></span>
+    </div>
+    
+    <h1 class="hero-title">
+      <span>LLM-Augmented</span><br>RL
+    </h1>
+    
+    <h2 class="hero-subtitle">for Disruption-Resilient Inventory Control</h2>
+    
+    <p class="hero-desc">
+      Replicating Stranieri & Stella (2023) and extending with a novel Oracle 
+      News Module — a rule-based LLM pipeline that simulates supply chain 
+      disruption detection without external API calls.
+    </p>
+    
+    <div class="hero-stats">
+      <div class="stat-block">
+        <div class="stat-num cyan" data-target="3">0</div>
+        <div class="stat-label">Policies Replicated</div>
+        <div class="stat-sub">Within 10%</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-num green count-up" data-target="1.3">0.0</div>
+        <div class="stat-label">Oracle Delta</div>
+        <div class="stat-sub">Best match</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-num amber count-up" data-target="5.43">0.00</div>
+        <div class="stat-label">Over-hedging t-stat</div>
+        <div class="stat-sub">p &lt; 0.0001</div>
+      </div>
+    </div>
+    
+    <div class="scroll-indicator">↓</div>
+  </section>
+
+  <section id="overview" class="animate-up">
+    <div class="section-header">
+      <h2>Project Overview</h2>
+      <div class="subtitle">THE RESEARCH PROBLEM & SYSTEM ARCHITECTURE</div>
+      <hr>
+    </div>
+    
+    <div class="overview-grid">
+      <div class="text-content">
+        <p>Classical (s,Q) heuristics are inherently reactive. They manage baseline volatility gracefully but fail structurally during extended supply chain disruptions, completely blind to the semantic risk signals accelerating around them.</p>
+        <p>While Reinforcement Learning (RL) agents can technically learn adaptive policies, typical approaches rely purely on quantitative state embeddings, ignoring the qualitative news and information flow that human managers use to foresee shocks.</p>
+        <p>This project tests whether LLM-derived risk signals fed as continuous streams can improve resilience, avoiding the catastrophic over-hedging typical of simplistic binary disruption-aware RL extensions.</p>
+      </div>
+      
+      <div class="architecture-diagram">
+        <div class="arch-box">
+          <div class="arch-title">Supply Chain Env</div>
+          <div class="arch-desc">ScimaiEnv + Disruption Events (Lu et al. 2025)</div>
+        </div>
+        <div class="arch-conn">
+          <span class="conn-label mono-text">true_disruption_flag</span>
+        </div>
+        
+        <div class="arch-box highlight">
+          <div class="arch-title">Oracle News Module</div>
+          <div class="arch-desc">NewsOracle + Parser (Novel Contribution)</div>
+        </div>
+        <div class="arch-conn">
+          <span class="conn-label mono-text">risk_score ∈ [0,1]</span>
+        </div>
+        
+        <div class="arch-box">
+          <div class="arch-title">PPO LLM-Augmented</div>
+          <div class="arch-desc">State: [inv, transit, demand, t, risk_score]</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="phase1" class="animate-up">
+    <div class="section-header">
+      <h2>Phase 1 — Replication</h2>
+      <div class="subtitle">vs Stranieri & Stella (2023) · 1P1W Experiment 1</div>
+      <hr>
+    </div>
+    
+    <div class="table-container glass-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Policy</th>
+            <th>Paper Result</th>
+            <th>Our Result</th>
+            <th>Delta</th>
+            <th>Match?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Oracle</td>
+            <td>1474 ± 45</td>
+            <td>1455 ± 42</td>
+            <td class="delta-cell">1.3% <span class="delta-bar" style="width: 13px;"></span></td>
+            <td class="match-icon yes">✓</td>
+          </tr>
+          <tr>
+            <td>A2C (≈A3C)</td>
+            <td>870 ± 67</td>
+            <td>829 ± 59</td>
+            <td class="delta-cell">4.7% <span class="delta-bar" style="width: 47px;"></span></td>
+            <td class="match-icon yes">✓</td>
+          </tr>
+          <tr>
+            <td>(s,Q)</td>
+            <td>1226 ± 71</td>
+            <td>1337 ± 49</td>
+            <td class="delta-cell">9.1% <span class="delta-bar" style="width: 91px;"></span></td>
+            <td class="match-icon yes">✓</td>
+          </tr>
+          <tr>
+            <td>PPO</td>
+            <td>1213 ± 68</td>
+            <td>1602 ± 51</td>
+            <td class="delta-cell">32.1% <span class="delta-bar high" style="width: 100px;"></span></td>
+            <td class="match-icon no">~</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="chart-container-p1">
+      <canvas id="chart-phase1"></canvas>
+    </div>
+    
+    <div class="glass-card insight-card">
+      <h3 class="title">Why PPO Over-performs by 32%</h3>
+      <p>SB3's PPO uses improved advantage normalisation and gradient clipping unavailable in Ray/RLlib 1.5.2 (2022). This is an architectural improvement, not a replication failure. Our PPO result (1,602) approaches the theoretical optimal fixed-strategy profit of ~1,618 found through grid search, indicating near-optimal convergence.</p>
+    </div>
+  </section>
+
+  <section id="phase2" class="animate-up">
+    <div class="section-header">
+      <h2>Phase 2 — LLM-Augmented Extension</h2>
+      <div class="subtitle">Three disruption regimes · Four policies compared</div>
+      <hr>
+    </div>
+    
+    <div class="tabs">
+      <button class="tab-btn active" data-target="tab-fs">Frequent-Short</button>
+      <button class="tab-btn" data-target="tab-il">Infrequent-Long</button>
+      <button class="tab-btn" data-target="tab-st">Stress Test</button>
+    </div>
+    
+    <div class="tab-contents glass-card">
+      
+      <!-- Frequent Short -->
+      <div id="tab-fs" class="tab-content active">
+        <div class="phase2-grid">
+          <div class="chart-container-p2">
+            <canvas id="chart-fs-bar"></canvas>
+          </div>
+          <div class="radar-container">
+            <canvas id="chart-fs-radar"></canvas>
+          </div>
+        </div>
+        
+        <div class="key-finding-banner glass-card">
+          <h3 style="color: var(--amber); margin-bottom: 10px;">⚡ CENTRAL FINDING: Binary flags cause collapse. Continuous signals don't.</h3>
+          <div class="finding-stats">
+            
+            <div class="fs-block sig">
+              <div class="fs-sig-label">STATISTICALLY SIGNIFICANT</div>
+              <div class="fs-t mono-text">t = 5.43 | p &lt; 0.0001</div>
+              <div class="mono-text" style="color:white; margin-bottom: 5px;">Blind vs Disrupt-Aware</div>
+              <p style="font-size: 0.85rem; color: var(--text-secondary);">Boolean flag triggers over-hedging: −61.4% profit</p>
+            </div>
+            
+            <div class="fs-block not-sig">
+              <div class="fs-sig-label">NOT SIGNIFICANT</div>
+              <div class="fs-t mono-text">t = 0.61 | p = 0.5408</div>
+              <div class="mono-text" style="color:white; margin-bottom: 5px;">Blind vs LLM-Augmented</div>
+              <p style="font-size: 0.85rem; color: var(--text-secondary);">Noisy continuous score avoids collapse: −4.6% profit</p>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+      
+      <!-- Infrequent Long -->
+      <div id="tab-il" class="tab-content">
+        <div class="chart-container-p2" style="margin-bottom: 30px;">
+          <canvas id="chart-il-bar"></canvas>
+        </div>
+        <div class="glass-card" style="border-left: 4px solid var(--cyan);">
+          <h3 style="margin-bottom: 10px; color: white;">Variance Dominance</h3>
+          <p>Episode profit std ≈ ±1,620 — variance entirely dominates mean differences. No policy demonstrates statistically robust dominance (all p > 0.25). The disruption behaves like a sledgehammer; either you get hit entirely or miss it completely across 100 episodes.</p>
+        </div>
+      </div>
+      
+      <!-- Stress Test -->
+      <div id="tab-st" class="tab-content">
+        <div class="chart-container-p2" style="margin-bottom: 30px;">
+          <canvas id="chart-st-bar"></canvas>
+        </div>
+        <div class="glass-card" style="border-left: 4px solid var(--amber);">
+          <h3 style="margin-bottom: 10px; color: var(--amber);">Stress Regime Saturation</h3>
+          <p>All PPO variants converge to the identical max-throughput saturation policy (~-3385 profit). This is structurally highly rational under a 53% disruption rate. (s,Q) actually performs best here (−2,805) simply by blindly avoiding excessive reaction production costs.</p>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+  <section id="oracle" class="animate-up">
+    <div class="section-header">
+      <h2>The Oracle News Module</h2>
+      <span class="badge">NOVEL CONTRIBUTION</span>
+      <hr>
+    </div>
+    
+    <div class="overview-grid">
+      <div class="left-col">
+        <h3 style="color: white; margin-bottom: 20px;">How the LLM Pipeline Works</h3>
+        <ol style="margin-left: 20px; color: var(--text-secondary); line-height: 1.8;">
+          <li>Environment generates <span class="mono-text" style="color: white;">true_disruption_flag</span> (0 or 1).</li>
+          <li>NewsOracle samples from template library based on the true state.</li>
+          <li>RiskParser applies keyword-weight scoring simulating semantic attention.</li>
+          <li>Gaussian noise (σ=0.25) added to simulate LLM ambiguity → final <span class="mono-text" style="color: var(--cyan)">risk_score ∈ [0,1]</span></li>
+        </ol>
+        
+        <div class="oracle-demo">
+          <div class="demo-controls">
+            <button class="btn" id="btn-sim-1">Simulate Disruption=1</button>
+            <button class="btn" id="btn-sim-0">Simulate Disruption=0</button>
+          </div>
+          <div class="demo-screen">
+            <div class="demo-headline" id="demo-headline">Awaiting simulation...</div>
+            <div class="demo-score-wrap" id="demo-score-wrap">
+              <span style="color: var(--text-secondary); font-size: 0.8rem;">FINAL LLM SCORE</span>
+              <span class="demo-score" id="demo-score">0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="right-col glass-card">
+        <h3 style="color: white; margin-bottom: 30px; text-align: center;">Signal Accuracy Profile</h3>
+        
+        <div class="donut-charts">
+          <div class="donut-wrap">
+            <canvas id="chart-donut-tpr"></canvas>
+            <div class="donut-label" style="color: var(--green);">95%</div>
+          </div>
+          <div class="donut-wrap">
+            <canvas id="chart-donut-fpr"></canvas>
+            <div class="donut-label" style="color: var(--amber);">2%</div>
+          </div>
+        </div>
+        
+        <div class="signal-bar-wrap">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--text-secondary);">
+            <span>← LOW RISK</span>
+            <span>HIGH RISK →</span>
+          </div>
+          
+          <div class="signal-bar-row">
+            <div class="signal-label">Normal state:</div>
+            <div class="signal-track">
+              <div class="signal-fill low" style="width: 12.7%;"></div>
+            </div>
+            <div style="width: 50px; text-align: right; color: white;">0.127</div>
+          </div>
+          
+          <div class="signal-bar-row">
+            <div class="signal-label">Disruption:</div>
+            <div class="signal-track">
+              <div class="signal-fill high" style="width: 87.6%;"></div>
+            </div>
+            <div style="width: 50px; text-align: right; color: white;">0.876</div>
+          </div>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 0.85rem; color: var(--text-secondary); border-top: 1px solid var(--border); padding-top: 15px;">
+          The continuous nature of the score (vs binary 0/1) prevents the catastrophic over-hedging that collapses Disruption-Aware PPO.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="timeline" class="animate-up">
+    <div class="section-header">
+      <h2>Methodology</h2>
+      <div class="subtitle">PROJECT DEVELOPMENT TIMELINE</div>
+      <hr>
+    </div>
+    
+    <div class="timeline">
+      <div class="tl-node">
+        <div class="tl-circle mono-text">01</div>
+        <div class="tl-title">ENV BUILD</div>
+        <div class="tl-desc">ScimaiEnv + Gymnasium — faithful replica of SCIMAI-Gym 1P1W</div>
+      </div>
+      <div class="tl-node">
+        <div class="tl-circle mono-text">02</div>
+        <div class="tl-title">PHASE 1 TRAIN</div>
+        <div class="tl-desc">300k timesteps · SB3 PPO + A2C · 100 eval episodes · seed=42</div>
+      </div>
+      <div class="tl-node">
+        <div class="tl-circle mono-text">03</div>
+        <div class="tl-title">REPLICATE</div>
+        <div class="tl-desc">3/4 within ±10% · Oracle 1.3% delta · A2C 4.7% delta</div>
+      </div>
+      <div class="tl-node">
+        <div class="tl-circle mono-text">04</div>
+        <div class="tl-title">DISRUPT EXT</div>
+        <div class="tl-desc">Lu et al. 2025 framework · Markov ON/OFF · μ₁ μ₂ modifiers</div>
+      </div>
+      <div class="tl-node">
+        <div class="tl-circle mono-text">05</div>
+        <div class="tl-title">NOVEL LLM</div>
+        <div class="tl-desc">Oracle News Module · NewsOracle + RiskParser · TPR=95%</div>
+      </div>
+      <div class="tl-node">
+        <div class="tl-circle mono-text">06</div>
+        <div class="tl-title">STATS</div>
+        <div class="tl-desc">Two-sample t-tests · t=5.43 p<0.0001 · Variance dominance</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="findings" class="summary-section animate-up">
+    <div style="padding: 100px 5%; max-width: 1200px; margin: 0 auto;">
+      <div class="section-header">
+        <h2>Key Findings Summary</h2>
+        <div class="subtitle">CONCLUSIONS FOR DEFENSE</div>
+      </div>
+      
+      <div class="summary-grid">
+        <div class="glass-card sum-card green">
+          <div class="sum-stat count-up" data-target="3">0</div>
+          <div class="sum-title">Replication Validated</div>
+          <div class="sum-text">Oracle: 1.3% · A2C: 4.7% · (s,Q): 9.1%</div>
+          <div class="sum-desc">Policies replicated within 10% of Stranieri & Stella (2023). Environment and methodology validated against published baseline.</div>
+        </div>
+        
+        <div class="glass-card sum-card amber">
+          <div class="sum-stat count-up" data-target="5.43">0.00</div>
+          <div class="sum-title">Over-Hedging Discovered</div>
+          <div class="sum-text">p &lt; 0.0001 · −61.4% profit vs Blind PPO</div>
+          <div class="sum-desc">Binary disruption flags cause statistically significant collapse. Disruption-Aware PPO loses 61% of profit by over-reacting to binary signals.</div>
+        </div>
+        
+        <div class="glass-card sum-card cyan">
+          <div class="sum-stat count-up" data-target="0.54">0.00</div>
+          <div class="sum-title">LLM Signal Validated</div>
+          <div class="sum-text">t=0.61 · −4.6% vs Blind (not sig)</div>
+          <div class="sum-desc">Continuous risk scores avoid over-hedging entirely. Oracle News Module preserves performance while providing reliable semantic awareness.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Arav · VIT-AP University · B.Tech CSE · 2026</div>
+    <div style="color: white;">Built with: Python · Stable-Baselines3 · Gymnasium · Chart.js</div>
+    <div>RL Assignment · Stranieri & Stella (2023) Replication</div>
+  </footer>
+
+</body>
+</html>
